@@ -988,6 +988,70 @@
                 flex-wrap: wrap;
             }
         }
+
+        /* ========== BILIYORUM ========== */
+        .btn-know {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, .3);
+        }
+
+        .btn-know:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(16, 185, 129, .4);
+        }
+
+        .know-bar {
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border: 1.5px solid #6ee7b7;
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .know-bar-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #065f46;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .known-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--success-light);
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        .bildiklerim-card {
+            background: var(--surface);
+            border: 1.5px solid #6ee7b7;
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            margin-bottom: 12px;
+        }
+
+        .bildiklerim-card:hover {
+            border-color: var(--success);
+            box-shadow: 0 4px 20px rgba(16, 185, 129, .12);
+        }
     </style>
 </head>
 
@@ -1008,14 +1072,17 @@
             <button class="nav-tab active" id="tabAdmin" onclick="switchTab('admin')">
                 ⚙️ <span>Yönetim</span>
             </button>
-            <button class="nav-tab" id="tabQuiz" onclick="switchTab('quiz')">
+            <button class="nav-tab" id="tabBiliyorum" onclick="switchTab('biliyorum')">
+                ✋ <span>Bildiklerim</span>
+            </button>
+            <button class="nav-tab active" id="tabQuiz" onclick="switchTab('quiz')">
                 📝 <span>Sınav</span>
             </button>
         </div>
     </nav>
 
     <!-- ADMIN PAGE -->
-    <div class="page active" id="pageAdmin">
+    <div class="page" id="pageAdmin">
         <!-- Import Card -->
         <div class="card">
             <div class="card-title">📥 Excel'den Soru İçe Aktar</div>
@@ -1035,22 +1102,16 @@
                     <tr>
                         <th>A Sütunu</th>
                         <th>B Sütunu</th>
-                        <th>C Sütunu</th>
-                        <th>D Sütunu</th>
-                        <th>E Sütunu</th>
-                        <th>F Sütunu</th>
                     </tr>
                     <tr>
                         <td>Soru metni</td>
                         <td>✅ Doğru cevap</td>
-                        <td>Diğer şık</td>
-                        <td>Diğer şık</td>
-                        <td>Diğer şık</td>
-                        <td>Diğer şık</td>
                     </tr>
                 </table>
                 <p style="margin-top:8px;font-size:12px;color:#92400e;">
-                    💡 1. satır başlık ise otomatik atlanır. Tüm satırlar direkt olarak okunur.
+                    💡 Yalnızca A ve B sütunları gereklidir. Yanlış şıklar sınav sırasında havuzdaki diğer soruların
+                    doğru cevaplarından <strong>otomatik ve rastgele</strong> seçilir. Birbirleriyle aynı olan şıklar
+                    otomatik elenir.
                 </p>
             </div>
             <div id="importPreview" style="margin-top:16px;display:none;">
@@ -1089,8 +1150,34 @@
         </div>
     </div>
 
+    <!-- BILDIKLERIM PAGE -->
+    <div class="page" id="pageBiliyorum">
+        <div class="card">
+            <div class="card-title">✋ Bildiklerim
+                <span class="known-badge" id="knownCountBadge">0</span>
+            </div>
+            <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px;">
+                Bu listedeki sorular sınavda çıkmaz. İstediğiniz zaman "Geri Al" ile sınava geri ekleyebilirsiniz.
+            </p>
+            <div class="search-bar">
+                <input type="text" class="search-input" id="knownSearchInput" placeholder="🔍 Bildiklerimde ara..."
+                    oninput="filterKnown()" />
+                <button class="btn btn-secondary btn-sm" onclick="unmarkAllConfirm()" id="unmarkAllBtn" disabled>
+                    ↩️ Tümünü Geri Al
+                </button>
+            </div>
+            <div id="knownList">
+                <div class="empty-state">
+                    <div class="icon">✋</div>
+                    <h3>Henüz bilinen soru yok</h3>
+                    <p>Sınavda "Biliyorum" butonuna basınca sorular buraya taşınır.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- QUIZ PAGE -->
-    <div class="page" id="pageQuiz">
+    <div class="page active" id="pageQuiz">
         <div id="quizSetupArea"></div>
         <div id="quizArea" style="display:none;"></div>
         <div id="quizResultsArea" style="display:none;"></div>
@@ -1110,21 +1197,10 @@
                 <label class="form-label">✅ Doğru Cevap</label>
                 <input type="text" class="form-input" id="editCorrect" placeholder="Doğru cevabı girin...">
             </div>
-            <div class="form-group">
-                <label class="form-label">Diğer Şık 1</label>
-                <input type="text" class="form-input" id="editWrong1" placeholder="(Boş bırakılabilir)">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Diğer Şık 2</label>
-                <input type="text" class="form-input" id="editWrong2" placeholder="(Boş bırakılabilir)">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Diğer Şık 3</label>
-                <input type="text" class="form-input" id="editWrong3" placeholder="(Boş bırakılabilir)">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Diğer Şık 4</label>
-                <input type="text" class="form-input" id="editWrong4" placeholder="(Boş bırakılabilir)">
+            <div
+                style="background:var(--warning-light);border:1px solid #fcd34d;border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:#92400e;margin-bottom:8px;">
+                💡 Yanlış şıklar sınav sırasında havuzdaki diğer soruların doğru cevaplarından <strong>otomatik ve
+                    rastgele</strong> seçilir.
             </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeEditModal()">İptal</button>
@@ -1180,8 +1256,11 @@
         const COLL = "questions";
 
         // ── State ─────────────────────────────────────────────────
-        let allQuestions = [];      // { id, question, correctAnswer, wrongAnswers[] }
+        let allQuestions = [];       // all docs from Firestore
+        let unknownQuestions = [];   // questions where known !== true
+        let knownQuestions = [];     // questions where known === true
         let filteredQuestions = [];
+        let filteredKnown = [];
         let pendingImport = [];
 
         // ── UI Helpers ────────────────────────────────────────────
@@ -1211,15 +1290,29 @@
             try {
                 const snap = await getDocs(collection(db, COLL));
                 allQuestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                filteredQuestions = [...allQuestions];
+                unknownQuestions = allQuestions.filter(q => !q.known);
+                knownQuestions = allQuestions.filter(q => q.known === true);
+                filteredQuestions = [...unknownQuestions];
+                filteredKnown = [...knownQuestions];
                 renderQuestionList();
+                renderBildiklerimPage();
                 setFirebaseStatus('ok');
                 document.getElementById('deleteAllBtn').disabled = allQuestions.length === 0;
+                document.getElementById('unmarkAllBtn').disabled = knownQuestions.length === 0;
+                document.getElementById('knownCountBadge').textContent = knownQuestions.length;
             } catch (e) {
                 setFirebaseStatus('error');
                 showToast('Firebase yükleme hatası: ' + e.message, 'error');
                 document.getElementById('questionList').innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>Yükleme Hatası</h3><p>' + e.message + '</p></div>';
             }
+        }
+
+        async function markAsKnown(id) {
+            await updateDoc(doc(db, COLL, id), { known: true });
+        }
+
+        async function unmarkAsKnown(id) {
+            await updateDoc(doc(db, COLL, id), { known: false });
         }
 
         async function saveQuestion(data) {
@@ -1243,30 +1336,26 @@
         // ── Rendering ─────────────────────────────────────────────
         function renderQuestionList() {
             const container = document.getElementById('questionList');
-            document.getElementById('totalCount').textContent = allQuestions.length + ' Soru';
+            document.getElementById('totalCount').textContent = unknownQuestions.length + ' Soru (' + knownQuestions.length + ' biliniyor)';
             document.getElementById('deleteAllBtn').disabled = allQuestions.length === 0;
 
-            const src = filteredQuestions.length ? filteredQuestions : (document.getElementById('searchInput').value ? [] : allQuestions);
-            const toShow = document.getElementById('searchInput').value ? filteredQuestions : allQuestions;
+            const toShow = document.getElementById('searchInput').value ? filteredQuestions : unknownQuestions;
 
             if (toShow.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <div class="icon">🗂️</div>
-                        <h3>Henüz soru yok</h3>
+                        <h3>Soru havuzu boş</h3>
                         <p>Excel dosyası yükleyerek soru ekleyebilirsiniz.</p>
                     </div>`;
                 return;
             }
 
-            const letters = ['A', 'B', 'C', 'D', 'E'];
             container.innerHTML = '<div class="q-list">' + toShow.map((q, i) => {
-                const wrongChips = (q.wrongAnswers || []).filter(Boolean)
-                    .map(w => `<span class="q-answer-chip wrong">${w}</span>`).join('');
                 return `
                     <div class="q-card">
                         <div class="q-card-header">
-                            <span class="q-index">#${allQuestions.indexOf(q) + 1}</span>
+                            <span class="q-index">#${i + 1}</span>
                             <div class="q-text">${escHtml(q.question)}</div>
                             <div class="q-actions">
                                 <button class="btn btn-secondary btn-sm" onclick="openEdit('${q.id}')">✏️</button>
@@ -1275,11 +1364,86 @@
                         </div>
                         <div class="q-answers">
                             <span class="q-answer-chip correct">${escHtml(q.correctAnswer)}</span>
-                            ${wrongChips}
                         </div>
                     </div>`;
             }).join('') + '</div>';
         }
+
+        // ── Bildiklerim Rendering ──────────────────────────────────
+        function renderBildiklerimPage() {
+            const container = document.getElementById('knownList');
+            document.getElementById('knownCountBadge').textContent = knownQuestions.length;
+            document.getElementById('unmarkAllBtn').disabled = knownQuestions.length === 0;
+
+            const toShow = document.getElementById('knownSearchInput').value ? filteredKnown : knownQuestions;
+
+            if (toShow.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">✋</div>
+                        <h3>Henüz bilinen soru yok</h3>
+                        <p>Sınavda "Biliyorum" butonuna basınca sorular buraya taşınır.</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = '<div class="q-list">' + toShow.map((q, i) => `
+                <div class="bildiklerim-card">
+                    <div class="q-card-header">
+                        <span class="known-badge">✋ Biliniyor</span>
+                        <div class="q-text" style="flex:1;">${escHtml(q.question)}</div>
+                        <div class="q-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="openEdit('${q.id}')">✏️</button>
+                            <button class="btn btn-primary btn-sm" title="Sınava geri al" onclick="doUnmark('${q.id}')">↩️ Geri Al</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteSingleConfirm('${q.id}')">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="q-answers" style="margin-top:10px;">
+                        <span class="q-answer-chip correct">${escHtml(q.correctAnswer)}</span>
+                    </div>
+                </div>`
+            ).join('') + '</div>';
+        }
+
+        window.filterKnown = function () {
+            const term = document.getElementById('knownSearchInput').value.toLowerCase().trim();
+            filteredKnown = term
+                ? knownQuestions.filter(q =>
+                    q.question.toLowerCase().includes(term) ||
+                    (q.correctAnswer || '').toLowerCase().includes(term)
+                )
+                : [...knownQuestions];
+            renderBildiklerimPage();
+        };
+
+        window.doUnmark = async function (id) {
+            try {
+                await unmarkAsKnown(id);
+                showToast('Soru sınava geri alındı.', 'success');
+                await loadQuestions();
+            } catch (e) {
+                showToast('İşlem hatası: ' + e.message, 'error');
+            }
+        };
+
+        window.unmarkAllConfirm = function () {
+            openConfirm(
+                'Tümünü geri al?',
+                `${knownQuestions.length} bilinen soru sınava geri eklenecek.`,
+                '↩️',
+                async () => {
+                    try {
+                        const batch = writeBatch(db);
+                        knownQuestions.forEach(q => batch.update(doc(db, COLL, q.id), { known: false }));
+                        await batch.commit();
+                        showToast('Tüm sorular sınava geri alındı.', 'success');
+                        await loadQuestions();
+                    } catch (e) {
+                        showToast('İşlem hatası: ' + e.message, 'error');
+                    }
+                }
+            );
+        };
 
         function escHtml(s) {
             return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -1289,12 +1453,11 @@
         window.filterQuestions = function () {
             const term = document.getElementById('searchInput').value.toLowerCase().trim();
             filteredQuestions = term
-                ? allQuestions.filter(q =>
+                ? unknownQuestions.filter(q =>
                     q.question.toLowerCase().includes(term) ||
-                    (q.correctAnswer || '').toLowerCase().includes(term) ||
-                    (q.wrongAnswers || []).some(w => w.toLowerCase().includes(term))
+                    (q.correctAnswer || '').toLowerCase().includes(term)
                 )
-                : [...allQuestions];
+                : [...unknownQuestions];
             renderQuestionList();
         };
 
@@ -1337,11 +1500,12 @@
                 const q = String(row[0] || '').trim();
                 const correct = String(row[1] || '').trim();
                 if (!q || !correct) { skipped++; return; }
-                // Detect header row (first row, question cell contains typical header words)
-                if (idx === 0 && q.toLowerCase().includes('soru') || q.toLowerCase() === 'question') { skipped++; return; }
-                const wrongs = [row[2], row[3], row[4], row[5]]
-                    .map(c => String(c || '').trim()).filter(Boolean);
-                pendingImport.push({ question: q, correctAnswer: correct, wrongAnswers: wrongs });
+                // Detect header row: first row where A column looks like a header label
+                if (idx === 0 && (q.toLowerCase().includes('soru') || q.toLowerCase() === 'question' || q.toLowerCase() === 'a')) {
+                    skipped++; return;
+                }
+                // Only store question + correctAnswer; distractors are generated dynamically at quiz time
+                pendingImport.push({ question: q, correctAnswer: correct });
             });
 
             if (pendingImport.length === 0) {
@@ -1353,10 +1517,10 @@
             const previewDiv = document.getElementById('importPreview');
             const previewList = document.getElementById('previewList');
             previewDiv.style.display = 'block';
-            const letters = ['A', 'B', 'C', 'D', 'E'];
             previewList.innerHTML = `
                 <p style="color:var(--text-muted);font-size:14px;margin-bottom:12px;">
                     ${pendingImport.length} soru bulundu${skipped > 0 ? `, ${skipped} satır atlandı` : ''}.
+                    Yanlış şıklar sınav sırasında otomatik oluşturulacak.
                 </p>
                 <div class="q-list">
                     ${pendingImport.slice(0, 5).map((q, i) => `
@@ -1367,7 +1531,7 @@
                             </div>
                             <div class="q-answers">
                                 <span class="q-answer-chip correct">${escHtml(q.correctAnswer)}</span>
-                                ${q.wrongAnswers.map(w => `<span class="q-answer-chip wrong">${escHtml(w)}</span>`).join('')}
+                                <span class="q-answer-chip" style="background:var(--surface2);color:var(--text-muted);font-style:italic;">+ şıklar otomatik</span>
                             </div>
                         </div>
                     `).join('')}
@@ -1413,11 +1577,6 @@
             document.getElementById('editId').value = id;
             document.getElementById('editQuestion').value = q.question;
             document.getElementById('editCorrect').value = q.correctAnswer;
-            const ws = q.wrongAnswers || [];
-            document.getElementById('editWrong1').value = ws[0] || '';
-            document.getElementById('editWrong2').value = ws[1] || '';
-            document.getElementById('editWrong3').value = ws[2] || '';
-            document.getElementById('editWrong4').value = ws[3] || '';
             document.getElementById('editModal').classList.add('open');
         };
 
@@ -1430,14 +1589,9 @@
             const question = document.getElementById('editQuestion').value.trim();
             const correctAnswer = document.getElementById('editCorrect').value.trim();
             if (!question || !correctAnswer) { showToast('Soru ve doğru cevap zorunludur.', 'warning'); return; }
-            const wrongAnswers = [
-                document.getElementById('editWrong1').value.trim(),
-                document.getElementById('editWrong2').value.trim(),
-                document.getElementById('editWrong3').value.trim(),
-                document.getElementById('editWrong4').value.trim(),
-            ].filter(Boolean);
             try {
-                await updateQuestion(id, { question, correctAnswer, wrongAnswers });
+                // wrongAnswers field removed — distractors are generated dynamically at quiz time
+                await updateQuestion(id, { question, correctAnswer });
                 showToast('Soru güncellendi!', 'success');
                 closeEditModal();
                 await loadQuestions();
@@ -1492,9 +1646,13 @@
         window.switchTab = function (tab) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            document.getElementById('page' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
-            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+            // Map tab name -> page id (biliyorum -> pageBiliyorum)
+            const pageId = 'page' + tab.charAt(0).toUpperCase() + tab.slice(1);
+            const tabId = 'tab' + tab.charAt(0).toUpperCase() + tab.slice(1);
+            document.getElementById(pageId).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
             if (tab === 'quiz') renderQuizSetup();
+            if (tab === 'biliyorum') renderBildiklerimPage();
         };
 
         // ── Quiz Logic ────────────────────────────────────────────
@@ -1506,29 +1664,38 @@
             document.getElementById('quizResultsArea').style.display = 'none';
             area.style.display = 'block';
 
-            if (allQuestions.length === 0) {
+            if (unknownQuestions.length === 0) {
+                const allEmpty = allQuestions.length === 0;
                 area.innerHTML = `
                     <div class="card">
                         <div class="empty-state">
-                            <div class="icon">📭</div>
-                            <h3>Soru Havuzu Boş</h3>
-                            <p>Yönetim panelinden Excel dosyası yükleyerek soru ekleyin.</p>
-                            <button class="btn btn-primary" style="margin-top:20px;" onclick="switchTab('admin')">
-                                ⚙️ Yönetim Paneline Git
-                            </button>
+                            <div class="icon">${allEmpty ? '📭' : '✋'}</div>
+                            <h3>${allEmpty ? 'Soru Havuzu Boş' : 'Tüm Sorular Biliniyor!'}</h3>
+                            <p>${allEmpty
+                        ? 'Yönetim panelinden Excel dosyası yükleyerek soru ekleyin.'
+                        : knownQuestions.length + ' soruyu Bildiklerim listesine taşıdınız. Geri almak için Bildiklerim sekmesine gidin.'}
+                            </p>
+                            <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap;">
+                                <button class="btn btn-primary" onclick="switchTab('admin')">⚙️ Yönetime Git</button>
+                                ${!allEmpty ? '<button class="btn btn-secondary" onclick="switchTab(\"biliyorum\")">✋ Bildiklerim</button>' : ''}
+                            </div>
                         </div>
                     </div>`;
                 return;
             }
+            const knownNote = knownQuestions.length > 0
+                ? `<div style="font-size:13px;color:var(--text-muted);margin-top:8px;">✋ ${knownQuestions.length} soru Bildiklerim listesinde (sınavda çıkmaz)</div>`
+                : '';
             area.innerHTML = `
                 <div class="card quiz-setup-card">
                     <h2>🎓 Sınava Hazır Mısın?</h2>
-                    <p>Sorular karıştırılmış olarak gelecek. Her soruya bir hakkın var!</p>
-                    <div class="q-count-badge">📚 ${allQuestions.length} Soru Mevcut</div>
-                    <div style="display:flex;flex-direction:column;gap:12px;max-width:320px;margin:0 auto;">
+                    <p>Sorular karıştırılmış olarak gelecek.</p>
+                    <div class="q-count-badge">📚 ${unknownQuestions.length} Soru Mevcut</div>
+                    ${knownNote}
+                    <div style="display:flex;flex-direction:column;gap:12px;max-width:320px;margin:20px auto 0;">
                         <label style="font-size:14px;font-weight:600;color:var(--text-muted);">Kaç soru çözmek istersiniz?</label>
-                        <input type="number" class="form-input" id="quizCountInput" 
-                            min="1" max="${allQuestions.length}" value="${Math.min(allQuestions.length, 20)}" 
+                        <input type="number" class="form-input" id="quizCountInput"
+                            min="1" max="${unknownQuestions.length}" value="${Math.min(unknownQuestions.length, 20)}"
                             style="text-align:center;font-size:18px;font-weight:700;">
                         <button class="btn btn-primary" style="padding:14px;" onclick="startQuiz()">
                             🚀 Sınavı Başlat
@@ -1538,17 +1705,65 @@
         }
 
         window.startQuiz = function () {
-            const count = parseInt(document.getElementById('quizCountInput').value) || allQuestions.length;
-            const n = Math.min(Math.max(1, count), allQuestions.length);
-            const shuffled = shuffle([...allQuestions]).slice(0, n);
+            const count = parseInt(document.getElementById('quizCountInput').value) || unknownQuestions.length;
+            const n = Math.min(Math.max(1, count), unknownQuestions.length);
+            // Only use unknownQuestions (not flagged as known)
+            const shuffled = shuffle([...unknownQuestions]).slice(0, n);
+
+            // Distractor pool from ALL questions (known + unknown) for variety
+            const allCorrectAnswers = allQuestions.map(q => q.correctAnswer);
+
             shuffled.forEach(q => {
-                const opts = shuffle([q.correctAnswer, ...(q.wrongAnswers || []).filter(Boolean)]);
-                q._opts = opts;
+                const pool = shuffle(allCorrectAnswers.filter(a => a !== q.correctAnswer));
+                const distractors = [];
+                for (const candidate of pool) {
+                    if (!distractors.includes(candidate)) distractors.push(candidate);
+                    if (distractors.length === 4) break;
+                }
+                q._opts = shuffle([q.correctAnswer, ...distractors]);
             });
+
             quizState = { questions: shuffled, current: 0, score: 0, answers: new Array(shuffled.length).fill(null) };
             document.getElementById('quizSetupArea').style.display = 'none';
             document.getElementById('quizArea').style.display = 'block';
             renderQuizQuestion();
+        };
+
+        // Mark current question as known and advance quiz
+        window.markCurrentAsKnown = async function () {
+            const s = quizState;
+            const q = s.questions[s.current];
+            try {
+                await markAsKnown(q.id);
+                // Remove from local state immediately
+                q._markedKnown = true;
+                // Remove the question from the quiz session
+                s.questions.splice(s.current, 1);
+                s.answers.splice(s.current, 1);
+                // Refresh known/unknown lists silently
+                const snap = await getDocs(collection(db, COLL));
+                allQuestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                unknownQuestions = allQuestions.filter(q => !q.known);
+                knownQuestions = allQuestions.filter(q => q.known === true);
+                filteredKnown = [...knownQuestions];
+                document.getElementById('knownCountBadge').textContent = knownQuestions.length;
+                document.getElementById('unmarkAllBtn').disabled = knownQuestions.length === 0;
+
+                showToast('Soru Bildiklerim listesine taşındı! ✋', 'success');
+
+                if (s.questions.length === 0) {
+                    // No more questions in this quiz
+                    document.getElementById('quizArea').style.display = 'none';
+                    document.getElementById('quizSetupArea').style.display = 'block';
+                    renderQuizSetup();
+                    return;
+                }
+                // Clamp current index
+                if (s.current >= s.questions.length) s.current = s.questions.length - 1;
+                renderQuizQuestion();
+            } catch (e) {
+                showToast('İşlem hatası: ' + e.message, 'error');
+            }
         };
 
         function renderQuizQuestion() {
@@ -1589,6 +1804,12 @@
                     <div class="progress-outer">
                         <div class="progress-inner" style="width:${pct}%"></div>
                     </div>
+                </div>
+                <div class="know-bar">
+                    <span class="know-bar-text">✋ Bu soruyu zaten biliyor musunuz?</span>
+                    <button class="btn btn-know btn-sm" onclick="markCurrentAsKnown()">
+                        ✋ Biliyorum
+                    </button>
                 </div>
                 <div class="question-card">
                     <div class="question-title">${escHtml(q.question)}</div>
@@ -1689,7 +1910,7 @@
         }
 
         // ── Init ──────────────────────────────────────────────────
-        loadQuestions();
+        loadQuestions().then(() => renderQuizSetup());
     </script>
 </body>
 
