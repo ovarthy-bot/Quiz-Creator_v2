@@ -1278,7 +1278,7 @@
             const dot = document.getElementById('fbDot');
             const txt = document.getElementById('fbStatusText');
             dot.className = 'dot';
-            if (state === 'ok') { dot.classList.add(''); txt.textContent = 'Bağlı'; }
+            if (state === 'ok') { txt.textContent = 'Bağlı'; }
             else if (state === 'error') { dot.classList.add('error'); txt.textContent = 'Hata!'; }
             else { dot.classList.add('loading'); txt.textContent = 'Bağlanıyor...'; }
         }
