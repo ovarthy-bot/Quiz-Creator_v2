@@ -1240,6 +1240,11 @@
             orderBy,
             writeBatch
         } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import {
+            getAuth,
+            signInAnonymously,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         // ── Firebase Config ──────────────────────────────────────
         const firebaseConfig = {
@@ -1253,6 +1258,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
         const COLL = "questions";
 
         // ── State ─────────────────────────────────────────────────
@@ -1910,7 +1916,13 @@
         }
 
         // ── Init ──────────────────────────────────────────────────
-        loadQuestions().then(() => renderQuizSetup());
+        signInAnonymously(auth)
+            .then(() => loadQuestions())
+            .then(() => renderQuizSetup())
+            .catch(e => {
+                setFirebaseStatus('error');
+                showToast('Kimlik doğrulama hatası: ' + e.message, 'error');
+            });
     </script>
 </body>
 
